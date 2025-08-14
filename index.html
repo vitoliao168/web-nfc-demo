@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web NFC 讀取器</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* 簡單的樣式 */
+        body { font-family: sans-serif; text-align: center; padding: 2rem; }
+        button { font-size: 1.2rem; padding: 0.8rem 1.2rem; cursor: pointer; }
+        #log { margin-top: 1.5rem; text-align: left; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Web NFC 讀取器</h1>
+    <button id="scanButton">掃描 NFC 標籤</button>
+    <div id="log"></div>
+
+    <script>
+     const scanButton = document.getElementById('scanButton');
+const logElement = document.getElementById('log');
+
+function log(message) {
+    logElement.textContent += message + '\n';
+}
+
+if ('NDEFReader' in window) {
+    log('您的瀏覽器支援 Web NFC。');
+} else {
+    log('您的瀏覽-器不支援 Web NFC。');
+    scanButton.disabled = true;
+}
+
+scanButton.addEventListener('click', async () => {
+    log('請將 NFC 標籤靠近您的裝置...');
+
+    try {
+        const ndef = new NDEFReader();
+        await ndef.scan();
+        log('> 掃描已啟動');
+
+        ndef.addEventListener('reading', ({ message, serialNumber }) => {
+            log(`> 標籤序號: ${serialNumber}`);
+
+            for (const record of message.records) {
+                log(`> 紀錄類型: ${record.recordType}`);
+                log(`> MIME 類型: ${record.mediaType}`);
+                log(`> 資料: ${decodeRecord(record)}`);
+            }
+        });
+
+        ndef.addEventListener('readingerror', () => {
+            log('讀取 NFC 標籤時發生錯誤。');
+        });
+
+    } catch (error) {
+        if (error.name === 'NotAllowedError') {
+            log('錯誤：您已拒絕 NFC 權限請求。');
+            log('請點擊網址列旁的圖示，進入「權限」設定，並允許本網站使用 NFC 功能，然後重新整理頁面。');
+        } else if (error.name === 'InvalidStateError') {
+            log('錯誤：NFC 只能在頂層頁面中使用。');
+        } else {
+            log('發生未預期的錯誤: ' + error);
+        }
+    }
+});
+
+// 輔助函式來解碼不同類型的紀錄
+function decodeRecord(record) {
+    const textDecoder = new TextDecoder(record.encoding);
+    switch (record.recordType) {
+        case "text":
+            return textDecoder.decode(record.data);
+        case "url":
+            return textDecoder.decode(record.data);
+        // 您可以根據需求增加對其他紀錄類型的支援
+        default:
+            return `不支援的紀錄類型: ${record.recordType}`;
+    }
+}
+
+    </script>
+</body>
+</html>
