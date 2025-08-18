@@ -89,8 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.equipmentName.value, elements.roadLocation.value, elements.description.value, elements.remarks.value
         ];
         if (!data[0] || !data[2] || data[0].includes('讀取') || data[2].includes('讀取')) {
-            alert('請先完成「一鍵讀取」步驟！');
-            return null;
+            alert('請先完成「一鍵讀取」步驟！ 或是繼續儲存空白資料');
+            //return null;
         }
         return data;
     }
