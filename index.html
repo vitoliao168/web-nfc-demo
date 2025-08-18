@@ -1,84 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
-    <title>Web NFC 讀取器</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交通設備定位編碼系統</title>
     <style>
-        /* 簡單的樣式 */
-        body { font-family: sans-serif; text-align: center; padding: 2rem; }
-        button { font-size: 1.2rem; padding: 0.8rem 1.2rem; cursor: pointer; }
-        #log { margin-top: 1.5rem; text-align: left; white-space: pre-wrap; }
+        :root { --primary-color: #007bff; --success-color: #28a745; --info-color: #17a2b8; --warning-color: #fd7e14; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 1rem auto; padding: 0 1rem; background-color: #f4f6f9; color: #333; }
+        .container { background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 1.5rem; margin-bottom: 1.5rem; }
+        h1, h2 { text-align: center; color: #1c1e21; }
+        h2 { border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem; margin-top: 0; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-weight: bold; margin-bottom: 0.5rem; }
+        input[type="text"], textarea { width: 100%; padding: 0.8rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; box-sizing: border-box; }
+        textarea { resize: vertical; min-height: 80px; }
+        .readonly-input { background-color: #e9ecef; cursor: not-allowed; }
+        button { display: block; width: 100%; padding: 0.8rem; font-size: 1.1rem; color: white; border: none; border-radius: 6px; cursor: pointer; transition: background-color 0.3s; margin-bottom: 10px; }
+        #startScanBtn { background-color: var(--success-color); font-weight: bold; padding: 1rem; font-size: 1.3rem; }
+        #downloadCsvBtn { background-color: var(--primary-color); }
+        #downloadPdfBtn { background-color: var(--warning-color); }
+        .status-text { margin-top: 0.5rem; color: #606770; font-size: 0.9rem; text-align: center; }
+        .file-input-wrapper { border: 2px dashed #ccc; padding: 1rem; text-align: center; border-radius: 8px; cursor: pointer; background-color: #fafafa; transition: all 0.2s ease-in-out; }
+        .file-input-wrapper:hover { border-color: var(--primary-color); background-color: #f0f8ff; }
+        #csvUploader { display: none; }
+        #recordsPreview { width: 100%; height: 100px; font-size: 0.8em; background-color: #e9ecef; border: 1px solid #ccc; border-radius: 6px; }
     </style>
 </head>
 <body>
-    <h1>Web NFC 讀取器</h1>
-    <button id="scanButton">掃描 NFC 標籤</button>
-    <div id="log"></div>
 
-    <script>
-     const scanButton = document.getElementById('scanButton');
-const logElement = document.getElementById('log');
+    <h1>交通設備定位編碼系統</h1>
 
-function log(message) {
-    logElement.textContent += message + '\n';
-}
+    <div class="container">
+        <h2>步驟一：載入今日舊有紀錄 (選填)</h2>
+        <div class="file-input-wrapper" id="uploadArea">
+            <label for="csvUploader">點擊此處，或將今日的 CSV 檔拖曳至此<br>以附加新紀錄</label>
+            <input type="file" id="csvUploader" accept=".csv">
+        </div>
+        <p class="status-text" id="uploadStatus">如為今日首次盤點，請略過此步驟。</p>
+        <label for="recordsPreview">已載入紀錄預覽:</label>
+        <textarea id="recordsPreview" readonly></textarea>
+    </div>
 
-if ('NDEFReader' in window) {
-    log('您的瀏覽器支援 Web NFC。');
-} else {
-    log('您的瀏覽-器不支援 Web NFC。');
-    scanButton.disabled = true;
-}
+    <div class="container">
+        <h2>步驟二：自動讀取新紀錄</h2>
+        <button id="startScanBtn">一鍵讀取 (NFC + GPS)</button>
+        <p class="status-text" id="scanStatus">請點擊按鈕開始盤點作業</p>
+        <div class="form-group"><label for="timestamp">(2) 讀取日期時間</label><input type="text" id="timestamp" class="readonly-input" readonly></div>
+        <div class="form-group"><label for="nfcSerial">(1) NFC 卡片序號</label><input type="text" id="nfcSerial" class="readonly-input" readonly></div>
+        <div class="form-group"><label for="gpsLocation">(3) GPS 位置</label><input type="text" id="gpsLocation" class="readonly-input" readonly></div>
+    </div>
 
-scanButton.addEventListener('click', async () => {
-    log('請將 NFC 標籤靠近您的裝置...');
+    <div class="container">
+        <h2>步驟三：手動填寫資訊</h2>
+        <div class="form-group"><label for="unitName">(4) 單位</label><input type="text" id="unitName" placeholder="例如：臺北市政府交通局"></div>
+        <div class="form-group"><label for="equipmentName">(5) 設備名稱</label><input type="text" id="equipmentName" placeholder="例如：交通號誌控制器"></div>
+        <div class="form-group"><label for="roadLocation">(6) 位置(道路)說明</label><input type="text" id="roadLocation" placeholder="例如：中山路與中正路交叉口"></div>
+        <div class="form-group"><label for="description">(7) 功能簡介</label><textarea id="description" placeholder="例如：控制路口車流與行人號誌"></textarea></div>
+        <div class="form-group"><label for="remarks">(8) 備註</label><textarea id="remarks" placeholder="例如：外殼有輕微刮傷"></textarea></div>
+    </div>
 
-    try {
-        const ndef = new NDEFReader();
-        await ndef.scan();
-        log('> 掃描已啟動');
+    <div class="container">
+        <h2>步驟四：儲存盤點紀錄</h2>
+        <p>將會把新紀錄附加到舊有紀錄之後，並產生新檔案。</p>
+        <button id="downloadCsvBtn">下載 .CSV 檔</button>
+        <button id="downloadPdfBtn">下載 .PDF 檔 (包含所有紀錄)</button>
+        <p id="downloadStatus" class="status-text"></p>
+    </div>
 
-        ndef.addEventListener('reading', ({ message, serialNumber }) => {
-            log(`> 標籤序號: ${serialNumber}`);
+    <!-- 引入函式庫 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    
+    <script src="app.js"></script>
 
-            for (const record of message.records) {
-                log(`> 紀錄類型: ${record.recordType}`);
-                log(`> MIME 類型: ${record.mediaType}`);
-                log(`> 資料: ${decodeRecord(record)}`);
-            }
-        });
-
-        ndef.addEventListener('readingerror', () => {
-            log('讀取 NFC 標籤時發生錯誤。');
-        });
-
-    } catch (error) {
-        if (error.name === 'NotAllowedError') {
-            log('錯誤：您已拒絕 NFC 權限請求。');
-            log('請點擊網址列旁的圖示，進入「權限」設定，並允許本網站使用 NFC 功能，然後重新整理頁面。');
-        } else if (error.name === 'InvalidStateError') {
-            log('錯誤：NFC 只能在頂層頁面中使用。');
-        } else {
-            log('發生未預期的錯誤: ' + error);
-        }
-    }
-});
-
-// 輔助函式來解碼不同類型的紀錄
-function decodeRecord(record) {
-    const textDecoder = new TextDecoder(record.encoding);
-    switch (record.recordType) {
-        case "text":
-            return textDecoder.decode(record.data);
-        case "url":
-            return textDecoder.decode(record.data);
-        // 您可以根據需求增加對其他紀錄類型的支援
-        default:
-            return `不支援的紀錄類型: ${record.recordType}`;
-    }
-}
-
-    </script>
 </body>
 </html>
