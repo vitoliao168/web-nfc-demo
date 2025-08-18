@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>交通設備定位編碼系統</title>
     <style>
-        :root { --primary-color: #007bff; --success-color: #28a745; --info-color: #17a2b8; --warning-color: #fd7e14; }
+        :root { --primary-color: #007bff; --success-color: #28a745; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 1rem auto; padding: 0 1rem; background-color: #f4f6f9; color: #333; }
         .container { background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 1.5rem; margin-bottom: 1.5rem; }
         h1, h2 { text-align: center; color: #1c1e21; }
@@ -18,7 +18,6 @@
         button { display: block; width: 100%; padding: 0.8rem; font-size: 1.1rem; color: white; border: none; border-radius: 6px; cursor: pointer; transition: background-color 0.3s; margin-bottom: 10px; }
         #startScanBtn { background-color: var(--success-color); font-weight: bold; padding: 1rem; font-size: 1.3rem; }
         #downloadCsvBtn { background-color: var(--primary-color); }
-        #downloadPdfBtn { background-color: var(--warning-color); }
         .status-text { margin-top: 0.5rem; color: #606770; font-size: 0.9rem; text-align: center; }
         .file-input-wrapper { border: 2px dashed #ccc; padding: 1rem; text-align: center; border-radius: 8px; cursor: pointer; background-color: #fafafa; transition: all 0.2s ease-in-out; }
         .file-input-wrapper:hover { border-color: var(--primary-color); background-color: #f0f8ff; }
@@ -61,15 +60,10 @@
 
     <div class="container">
         <h2>步驟四：儲存盤點紀錄</h2>
-        <p>將會把新紀錄附加到舊有紀錄之後，並產生新檔案。</p>
-        <button id="downloadCsvBtn">下載 .CSV 檔</button>
-        <button id="downloadPdfBtn">下載 .PDF 檔 (包含所有紀錄)</button>
+        <p>將會把新紀錄附加到舊有紀錄之後，並產生新的 CSV 檔。</p>
+        <button id="downloadCsvBtn">新增紀錄並下載 .CSV 檔</button>
         <p id="downloadStatus" class="status-text"></p>
     </div>
-
-    <!-- 引入函式庫 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     
     <script src="app.js"></script>
 
