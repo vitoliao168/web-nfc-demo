@@ -9,8 +9,6 @@
         :root {
             --primary-color: #007bff;
             --success-color: #28a745;
-            --info-color: #17a2b8;
-            --warning-color: #fd7e14;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -146,7 +144,10 @@
             <label for="csvUploader">點擊此處，或將今日的 CSV 檔拖曳至此<br>以附加新紀錄</label>
             <input type="file" id="csvUploader" accept=".csv" style="display: none;">
         </div>
-        <p class="status-text" id="uploadStatus">如為今日首次盤點，請略過此步驟。</p>
+        <p class="status-text" id="uploadStatus">
+            如為今日首次盤點，請略過此步驟。<br>
+            <strong>Android 用戶請注意：</strong>若出現檔案開啟位置選項，請選擇 WPS Office、Google Drive 或其他檔案管理 App，而非內建的「檔案」。
+        </p>
         <label for="recordsPreviewContainer">已載入紀錄預覽:</label>
         <div id="recordsPreviewContainer">
             <!-- JavaScript 將會在此動態生成表格 -->
