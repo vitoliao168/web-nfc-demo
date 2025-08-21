@@ -31,11 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.onload = (e) => {
                 const content = e.target.result;
                 parseCsvContent(content);
-                elements.uploadStatus.textContent = `✅ 已成功載入 "${file.name}" 的 ${existingRecords.length} 筆紀錄。`;
+                elements.uploadStatus.innerHTML = `✅ <strong>已成功載入 "${file.name}" 的 ${existingRecords.length} 筆紀錄。</strong>`;
             };
             reader.readAsText(file, "UTF-8");
         } else {
-             elements.uploadStatus.textContent = "❌ 請選擇一個 .csv 檔案。";
+             elements.uploadStatus.innerHTML = "❌ <strong>請選擇一個 .csv 檔案。</strong>";
         }
         elements.csvUploader.value = '';
     }
@@ -60,9 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < line.length; i++) {
             const char = line[i];
             if (char === '"') {
+                // 如果是連續兩個引號，視為一個引號字元
                 if (inQuotes && line[i+1] === '"') {
                     currentField += '"';
-                    i++;
+                    i++; // 跳過下一個引號
                 } else {
                     inQuotes = !inQuotes;
                 }
@@ -73,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentField += char;
             }
         }
-        result.push(currentField);
+        result.push(currentField); // 加入最後一個欄位
         return result;
     }
 
@@ -122,16 +123,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    function readNFC() { return new Promise(async (resolve, reject) => { if (!('NDEFReader' in window)) { return reject(new Error('此瀏覽器不支援 Web NFC')); } try { const ndef = new NDEFReader(); await ndef.scan(); elements.scanStatus.textContent = "請將 NFC 標籤靠近手機背面..."; ndef.addEventListener('reading', ({ serialNumber }) => resolve({ serialNumber }), { once: true }); } catch (error) { reject(error); } }); }
+    function getGPSPosition() { return new Promise((resolve, reject) => { if (!navigator.geolocation) { return reject(new Error('您的瀏覽器不支援地理定位功能')); } navigator.geolocation.getCurrentPosition( (position) => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }), (error) => { let message = '無法取得 GPS 位置'; if (error.code === error.PERMISSION_DENIED) message = '您已拒絕 GPS 權限'; reject(new Error(message)); } ); }); }
+
     // --- 時間與資料處理 ---
     function updateTimestamp() { elements.timestamp.value = formatROCTime(new Date()); }
-    function formatROCTime(date) { /* ... 與前一版相同 ... */ }
+    function formatROCTime(date) {
+        const rocYear = date.getFullYear() - 1911;
+        const month = ('0' + (date.getMonth() + 1)).slice(-2);
+        const day = ('0' + date.getDate()).slice(-2);
+        const hours = ('0' + date.getHours()).slice(-2);
+        const minutes = ('0' + date.getMinutes()).slice(-2);
+        return `${rocYear}/${month}/${day} ${hours}:${minutes}`;
+    }
     setInterval(updateTimestamp, 1000);
     updateTimestamp();
 
-    function collectDataAsArray() { /* ... 與前一版相同 ... */ }
+    function collectDataAsArray() {
+        const data = [
+            elements.nfcSerial.value, elements.timestamp.value, elements.gpsLocation.value, elements.unitName.value,
+            elements.equipmentName.value, elements.roadLocation.value, elements.description.value, elements.remarks.value
+        ];
+        if (!data[0] || !data[2] || data[0].includes('讀取') || data[2].includes('讀取')) {
+            alert('請先完成「一鍵讀取」步驟！');
+            return null;
+        }
+        return data;
+    }
     
     // --- 檔案下載 ---
-    function getFileName() { /* ... 與前一版相同 ... */ }
+    function getFileName() { const today = new Date(); const month = ('0' + (today.getMonth() + 1)).slice(-2); const day = ('0' + today.getDate()).slice(-2); return `${month}${day}`; }
 
     elements.downloadCsvBtn.addEventListener('click', () => {
         const newRecord = collectDataAsArray();
@@ -146,7 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
         csvContent += existingRecords.map(row => 
             row.map(field => {
                 const safeField = (field || '').toString();
+                // 如果欄位包含逗號、引號或換行符，就用引號把它包起來
                 if (safeField.includes(',') || safeField.includes('"') || safeField.includes('\n')) {
+                    // 將欄位內的引號替換為兩個引號
                     return `"${safeField.replace(/"/g, '""')}"`;
                 }
                 return safeField;
@@ -158,11 +181,16 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.downloadStatus.textContent = `CSV 檔案 "${getFileName()}.csv" 已新增紀錄並下載。`;
     });
 
-    function downloadBlob(blob, filename) { /* ... 與前一版相同 ... */ }
-    
-    // 輔助函數
-    function readNFC() { /* ... 與前一版相同 ... */ }
-    function getGPSPosition() { /* ... 與前一版相同 ... */ }
+    function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
     
     // --- 應用程式啟動點 ---
     updatePreview();
